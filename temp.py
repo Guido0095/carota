@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 from datetime import datetime
+from datetime import timedelta
 from threading import Thread
 import shlex
 import sys
@@ -8,9 +9,11 @@ import io
 
 mappone = {}
 
+
 class Hotstrippamilaminchia:
     def __init__(self, ssid, bssid, power):
         self.ssid = ssid
+        self.bssid = []
         self.bssid.append(bssid)
         self.clients = {}
         self.power = power
@@ -21,33 +24,30 @@ class Hotstrippamilaminchia:
         now = datetime.now()
         self.lastseen = now
         self.clients[mac] = now
-        self.power = power
 
     def printStatus(self):
         if self.ssid != "":
             print(self.power, "  ", self.ssid, "  ", str(len(self.clients)))
 
-    def updatessid(self, bssid, ssid):
-        if bssid in self.bssid and (self.ssid != ssid or self.ssid != '** ', ssid, ' **'):
-            del mappone[self.ssid]
-            self.ssid = '** ', ssid, ' **'
-            mappone[self.ssid] = self
-
-    def addbssid(self, bssid):
+    def addbssid(self, bssid, power):
         if bssid not in self.bssid:
             self.bssid.append(bssid)
-
-    def frombssidtossid(self, ssid, bssid):
-        if self.ssid == ssid:
-            return self.bssid
+            self.lastseen = datetime.now()
+            self.power = power
         else:
             return False
+
+    def givemessid(self, mac1, mac2):
+        if mac1 in self.bssid:
+            return mac2, self.ssid
+        elif mac2 in self.bssid:
+            return mac1, self.ssid
 
 
 class NetTest:
     def testTshark(self, iface):
 
-        cmd = 'tshark -l -I -Y "!(wlan.ra[0] & 1)" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i' + iface
+        cmd = 'tshark -l -I -Y "wlan.fc.type_subtype != 4" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i' + iface
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -68,11 +68,36 @@ class NetTest:
             if packetType == '5':
                 if ssid not in mappone:
                     Hotstrippamilaminchia(ssid, bssid, power)
+                else:
+                    address = mappone[ssid]
+                    address.addbssid(bssid, power)
+            elif receiver != "ff:ff:ff:ff:ff:ff":
+                ret = ''
+                if transmitter != '0':
+                    for name, address in mappone.items():
+                        if address.givemessid(receiver, transmitter) is not None:
+                            mac, ret = address.givemessid(receiver, transmitter)
+                            break
+                    if ret != '':
+                        strippatore = mappone[ret]
+                        strippatore.updateClient(mac, ret)
+            copymappone = []
             for name, address in mappone.items():
-                address.addbssid(bssid)
-            # if receiver != "ff:ff:ff:ff:ff:ff":
-            #     strippatore = mappone[ssid]
-            #     strippatore.updateClient(receiver, power)
+                time = (datetime.now() - timedelta(seconds=15))
+                if address.lastseen < time:
+                    copymappone.append(name)
+            for netname in copymappone:
+                del mappone[netname]
+            del copymappone
+            for name, address in mappone.items():
+                clienttodel = []
+                for client, lastconnection in address.clients.items():
+                    time = (datetime.now() - timedelta(seconds=15))
+                    if lastconnection < time:
+                        clienttodel.append(client)
+                for clientmac in clienttodel:
+                    del address.clients[clientmac]
+                del clienttodel
 
             for name, address in mappone.items():
                 address.printStatus()
