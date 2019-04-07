@@ -10,7 +10,7 @@ import io
 mappone = {}
 
 
-class Hotstrippamilaminchia:
+class Hotspot:
     def __init__(self, ssid, bssid, power):
         self.ssid = ssid
         self.bssid = []
@@ -67,7 +67,7 @@ class NetTest:
 
             if packetType == '5':
                 if ssid not in mappone:
-                    Hotstrippamilaminchia(ssid, bssid, power)
+                    Hotspot(ssid, bssid, power)
                 else:
                     address = mappone[ssid]
                     address.addbssid(bssid, power)
@@ -83,7 +83,7 @@ class NetTest:
                         strippatore.updateClient(mac, ret)
             copymappone = []
             for name, address in mappone.items():
-                time = (datetime.now() - timedelta(seconds=15))
+                time = (datetime.now() - timedelta(seconds=60))
                 if address.lastseen < time:
                     copymappone.append(name)
             for netname in copymappone:
@@ -92,7 +92,7 @@ class NetTest:
             for name, address in mappone.items():
                 clienttodel = []
                 for client, lastconnection in address.clients.items():
-                    time = (datetime.now() - timedelta(seconds=15))
+                    time = (datetime.now() - timedelta(seconds=60))
                     if lastconnection < time:
                         clienttodel.append(client)
                 for clientmac in clienttodel:
