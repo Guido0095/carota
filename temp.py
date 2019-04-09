@@ -115,5 +115,12 @@ class NetTest:
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        iface = sys.argv[1]
+    else:
+        print('\nInvalid nuber of arguments.')
+        print('\nEx:    Python3.7 temp.py wlan0')
+        print('\nor     Python3.7 temp.py --force')
+        sys.exit(0)
     net = NetTest()
-    net.run('wlp2s0')
+    net.run(iface)

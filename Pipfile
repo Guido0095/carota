@@ -7,9 +7,6 @@ verify_ssl = true
 python_version = "3.7"
 
 [packages]
-pcapy = "*"
-libpcap = "*"
-libcap = "*"
 
 [pipenv]
 allow_prereleases = true
