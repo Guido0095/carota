@@ -120,7 +120,6 @@ if __name__ == '__main__':
     else:
         print('\nInvalid nuber of arguments.')
         print('\nEx:    Python3.7 temp.py wlan0')
-        print('\nor     Python3.7 temp.py --force')
         sys.exit(0)
     net = NetTest()
     net.run(iface)
