@@ -7,8 +7,7 @@ import shlex
 import sys
 import io
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
+from firebase_admin import credentials, db
 
 mappone = {}
 
@@ -54,14 +53,13 @@ class NetTest:
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
-        # Fetch the service account key JSON file contents
-        cred = credentials.Certificate('####')
-        # Initialize the app with a service account, granting admin privileges
+        cred = credentials.Certificate('stachiave.json')
         firebase_admin.initialize_app(cred, {
-            'databaseURL': '####'
+            'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
         })
-        update = datetime.now() - timedelta(seconds=1)
-        ref = db.reference('ACCESS POINTS')
+        child = 'ACCESS POINTS'
+        ref = db.reference(child)
+        update = datetime.now() - timedelta(seconds=5)
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
             # print('%s' % line.rstrip())
             capture = line.rstrip().split('\t')
@@ -120,6 +118,10 @@ class NetTest:
                                     'SINGNAL POWER IN dB': address.power
                                 }
                             })
+                if ref.get(False, True) is not None:
+                    for key in ref.get(False, True):
+                        if key not in mappone:
+                            db.reference(child + '/' + key).delete()
                 print("--------")
 
     def run(self, iface):
