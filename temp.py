@@ -6,6 +6,9 @@ from threading import Thread
 import shlex
 import sys
 import io
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
 mappone = {}
 
@@ -51,6 +54,14 @@ class NetTest:
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
+        # Fetch the service account key JSON file contents
+        cred = credentials.Certificate('####')
+        # Initialize the app with a service account, granting admin privileges
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': '####'
+        })
+        update = datetime.now() - timedelta(seconds=1)
+        ref = db.reference('ACCESS POINTS')
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
             # print('%s' % line.rstrip())
             capture = line.rstrip().split('\t')
@@ -88,7 +99,6 @@ class NetTest:
                     copymappone.append(name)
             for netname in copymappone:
                 del mappone[netname]
-            del copymappone
             for name, address in mappone.items():
                 clienttodel = []
                 for client, lastconnection in address.clients.items():
@@ -97,11 +107,20 @@ class NetTest:
                         clienttodel.append(client)
                 for clientmac in clienttodel:
                     del address.clients[clientmac]
-                del clienttodel
+            if update < (datetime.now() - timedelta(seconds=5)):
+                update = datetime.now()
 
-            for name, address in mappone.items():
-                address.printStatus()
-            print("--------")
+                for name, address in mappone.items():
+                    address.printStatus()
+                    if name is not None:
+                        ref.update({
+                            name:
+                                {
+                                    'NUMBER OF CLIENTS': str(len(address.clients)),
+                                    'SINGNAL POWER IN dB': address.power
+                                }
+                            })
+                print("--------")
 
     def run(self, iface):
         try:
@@ -123,3 +142,5 @@ if __name__ == '__main__':
         sys.exit(0)
     net = NetTest()
     net.run(iface)
+
+
