@@ -53,9 +53,9 @@ class NetTest:
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
-        cred = credentials.Certificate('stachiave.json')
+        cred = credentials.Certificate('####')
         firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
+            'databaseURL': '####'
         })
         child = 'ACCESS POINTS'
         ref = db.reference(child)
