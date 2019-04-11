@@ -53,12 +53,15 @@ class NetTest:
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
-        cred = credentials.Certificate('####')
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': '####'
-        })
-        child = 'ACCESS POINTS'
-        ref = db.reference(child)
+        cred = credentials.Certificate('stachiave.json')
+        try:
+            firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
+            })
+            child = 'ACCESS POINTS'
+            ref = db.reference(child)
+        except :
+            print('No connection with the Firebase Database')
         update = datetime.now() - timedelta(seconds=5)
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
             # print('%s' % line.rstrip())
@@ -110,7 +113,7 @@ class NetTest:
 
                 for name, address in mappone.items():
                     address.printStatus()
-                    if name is not None:
+                    try:
                         ref.update({
                             name:
                                 {
@@ -118,6 +121,9 @@ class NetTest:
                                     'SINGNAL POWER IN dB': address.power
                                 }
                             })
+                    except:
+                        pass
+
                 if ref.get(False, True) is not None:
                     for key in ref.get(False, True):
                         if key not in mappone:
