@@ -111,7 +111,7 @@ class NetTest:
                 for clientmac in clienttodel:
                     del address.clients[clientmac]
             if update < (datetime.now() - timedelta(seconds=5)):
-
+                update = datetime.now()
                 for name, address in mappone.items():
                     address.printStatus()
                     try:
