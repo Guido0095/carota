@@ -61,8 +61,9 @@ class NetTest:
             })
             child = 'ACCESS POINTS'
             ref = db.reference(child)
-        except :
+        except:
             print('No connection with the Firebase Database')
+            pass
         update = datetime.now() - timedelta(seconds=5)
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
             # print('%s' % line.rstrip())
@@ -110,7 +111,6 @@ class NetTest:
                 for clientmac in clienttodel:
                     del address.clients[clientmac]
             if update < (datetime.now() - timedelta(seconds=5)):
-                update = datetime.now()
 
                 for name, address in mappone.items():
                     address.printStatus()
@@ -124,11 +124,13 @@ class NetTest:
                             })
                     except:
                         pass
-
-                if ref.get(False, True) is not None:
-                    for key in ref.get(False, True):
-                        if key not in mappone:
-                            db.reference(child + '/' + key).delete()
+                try:
+                    if ref.get(False, True) is not None:
+                        for key in ref.get(False, True):
+                            if key not in mappone:
+                                db.reference(child + '/' + key).delete()
+                except:
+                    pass
                 print("--------")
 
     def run(self, iface):
