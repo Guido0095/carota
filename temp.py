@@ -24,12 +24,13 @@ class Hotspot:
 
     def updateClient(self, mac, power):
         now = datetime.now()
-        self.lastseen = now
-        self.clients[mac] = now
+        if int(mac[:2], 16) & 1 == 0:
+            self.lastseen = now
+            self.clients[mac] = now
 
     def printStatus(self):
-        if self.ssid != "":
-            print(self.power, "  ", self.ssid, "  ", str(len(self.clients)))
+        if self.ssid != "x":
+            print(self.power, "  ", self.ssid, "  ", str(len(self.clients)), list(self.clients.keys()))
 
     def addbssid(self, bssid, power):
         if bssid not in self.bssid:
