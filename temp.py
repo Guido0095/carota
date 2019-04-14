@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 import subprocess
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from threading import Thread
 import shlex
 import sys
 import io
 import firebase_admin
+from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
 from firebase_admin import credentials, db
 
 mappone = {}
 
-
 class Hotspot:
     def __init__(self, ssid, bssid, power):
         self.ssid = ssid
-        self.bssid = []
-        self.bssid.append(bssid)
+        self.bssid = [bssid]
         self.clients = {}
-        self.power = power
+        self.powerarray = [int(power)]
         self.lastseen = datetime.now()
+        self.power = int(power)
         mappone[self.ssid] = self
 
     def updateClient(self, mac, power):
@@ -27,6 +26,11 @@ class Hotspot:
         if int(mac[:2], 16) & 1 == 0:
             self.lastseen = now
             self.clients[mac] = now
+            if len(self.powerarray) > 20:
+                del self.powerarray[0]
+            if power != '':
+                self.powerarray.append(int(power))
+            self.power = int(sum(self.powerarray)/len(self.powerarray))
 
     def printStatus(self):
         if self.ssid != "x":
@@ -36,7 +40,7 @@ class Hotspot:
         if bssid not in self.bssid:
             self.bssid.append(bssid)
             self.lastseen = datetime.now()
-            self.power = power
+            self.power = int(power)
         else:
             return False
 
@@ -55,15 +59,17 @@ class NetTest:
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
 
         cred = credentials.Certificate('stachiave.json')
+
         try:
             firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
+                'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
             })
             child = 'ACCESS POINTS'
             ref = db.reference(child)
         except:
             print('No connection with the Firebase Database')
             pass
+
         update = datetime.now() - timedelta(seconds=5)
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
             # print('%s' % line.rstrip())
@@ -94,8 +100,10 @@ class NetTest:
                             break
                     if ret != '':
                         strippatore = mappone[ret]
-                        strippatore.updateClient(mac, ret)
+                        strippatore.updateClient(mac, power)
+
             copymappone = []
+
             for name, address in mappone.items():
                 time = (datetime.now() - timedelta(seconds=60))
                 if address.lastseen < time:
@@ -121,9 +129,10 @@ class NetTest:
                                     'NUMBER OF CLIENTS': str(len(address.clients)),
                                     'SINGNAL POWER IN dB': address.power
                                 }
-                            })
+                        })
                     except:
                         pass
+
                 try:
                     if ref.get(False, True) is not None:
                         for key in ref.get(False, True):
@@ -131,6 +140,7 @@ class NetTest:
                                 db.reference(child + '/' + key).delete()
                 except:
                     pass
+
                 print("--------")
 
     def run(self, iface):
@@ -153,5 +163,3 @@ if __name__ == '__main__':
         sys.exit(0)
     net = NetTest()
     net.run(iface)
-
-
