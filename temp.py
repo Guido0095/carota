@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 import subprocess
 from datetime import datetime, timedelta
-from threading import Thread
 import shlex
 import sys
 import io
 import firebase_admin
-from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
+from PyQt5.QtCore import QRunnable, QThreadPool, pyqtSlot, QObject
 from firebase_admin import credentials, db
 
 mappone = {}
+
 
 class Hotspot:
     def __init__(self, ssid, bssid, power):
@@ -30,7 +30,7 @@ class Hotspot:
                 del self.powerarray[0]
             if power != '':
                 self.powerarray.append(int(power))
-            self.power = int(sum(self.powerarray)/len(self.powerarray))
+            self.power = int(sum(self.powerarray) / len(self.powerarray))
 
     def printStatus(self):
         if self.ssid != "x":
@@ -51,7 +51,16 @@ class Hotspot:
             return mac1, self.ssid
 
 
-class NetTest:
+class NetTest(QRunnable):
+    def __init__(self, iface, stop_signal, update_signal):
+        QRunnable.__init__(self)
+        self.iface = iface
+        self.update_signal = update_signal
+        self.stop_signal = stop_signal
+
+    def start(self):
+        QThreadPool.globalInstance().start(self)
+
     def testTshark(self, iface):
 
         cmd = 'tshark -l -I -Y "wlan.fc.type_subtype != 4" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i' + iface
@@ -142,24 +151,21 @@ class NetTest:
                     pass
 
                 print("--------")
+                self.update_signal.emit("asd")
 
-    def run(self, iface):
+    def run(self):
+        class Proxone(QObject):
+            @pyqtSlot(name="escilcane")
+            def escilcane(self):
+                print("Sto uscendo il cane")
+                sys.exit(0)
+
+            def __init__(self, signal):
+                super().__init__()
+                signal.connect(self.escilcane)
+        Proxone(self.stop_signal)
         try:
-            t = Thread(target=self.testTshark, args=(iface,))
-            t.daemon = True
-            t.start()
-            t.join()
+            self.testTshark(self.iface)
         except KeyboardInterrupt:
             print("\nExiting the dog...")
             sys.exit(0)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        iface = sys.argv[1]
-    else:
-        print('\nInvalid nuber of arguments.')
-        print('\nEx:    Python3.7 temp.py wlan0')
-        sys.exit(0)
-    net = NetTest()
-    net.run(iface)
