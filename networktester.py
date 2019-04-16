@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import subprocess
 from datetime import datetime, timedelta
 import shlex
@@ -149,9 +150,9 @@ class NetTest(QRunnable):
                                 db.reference(child + '/' + key).delete()
                 except:
                     pass
-
                 print("--------")
-                self.update_signal.emit("asd")
+                table = [{"Power": m.power, "SSID": m.ssid, "Connected": str(len(m.clients))} for m in mappone.values()]
+                self.update_signal.emit(json.dumps(table))
 
     def run(self):
         class Proxone(QObject):

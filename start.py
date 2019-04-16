@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import sys
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -125,7 +126,6 @@ class Ui_MainWindow(QMainWindow):
         self.tableWidget.verticalHeader().setDefaultSectionSize(30)
         self.tableWidget.verticalHeader().setMinimumSectionSize(30)
         self.tableWidget.verticalHeader().setStretchLastSection(False)
-        self.tableWidget.sortByColumn(0, 0)
         self.horizontalLayout.addWidget(self.tableWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.actionStart = QtWidgets.QAction(MainWindow)
@@ -135,19 +135,20 @@ class Ui_MainWindow(QMainWindow):
         self.p = NetTest('wlp2s0', self.stop_signal, self.update_signal)
         self.p.start()
 
-    def setmaxrow(self, maxrow):
-        self.tableWidget.setRowCount(maxrow)
-
     def closeEvent(self, QCloseEvent):
         self.stop_signal.emit()
 
     @pyqtSlot(str, name="update")
     def update(self, data: str):
-        print("Stampo robe " + data)
+        print("Stampo robe ")
+        estratto = json.loads(data)
+        self.tableWidget.setRowCount(0)
+        for extract in estratto:
+            self.populatetable(extract['Power'], extract['SSID'], extract['Connected'])
 
-    def populatetable(self, power, ssid, clients, row):
+    def populatetable(self, power: str, ssid: str, clients: str):
         item = QtWidgets.QTableWidgetItem()
-        item.setText(power)
+        item.setText(str(power))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         font = QtGui.QFont()
         font.setPointSize(18)
@@ -156,6 +157,8 @@ class Ui_MainWindow(QMainWindow):
         brush.setStyle(QtCore.Qt.NoBrush)
         item.setBackground(brush)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
+        row = self.tableWidget.rowCount()
+        self.tableWidget.insertRow(row)
         self.tableWidget.setItem(row, 0, item)
         item = QtWidgets.QTableWidgetItem()
         item.setText(ssid)
@@ -173,6 +176,7 @@ class Ui_MainWindow(QMainWindow):
         item.setFont(font)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         self.tableWidget.setItem(row, 2, item)
+        self.tableWidget.sortByColumn(0, 0)
 
 
 def main():
