@@ -3,6 +3,7 @@ import json
 import sys
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QColor
 
 from networktester import NetTest
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -12,6 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 class Ui_MainWindow(QMainWindow):
     stop_signal = pyqtSignal()
     update_signal = pyqtSignal(str)
+    kill_signal = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -136,7 +138,12 @@ class Ui_MainWindow(QMainWindow):
         self.p.start()
 
     def closeEvent(self, QCloseEvent):
+        print("hailamammasegnale")
         self.stop_signal.emit()
+
+    @pyqtSlot(int, name="kill")
+    def kill(self, pid: int):
+        print("Killo robe " +pid)
 
     @pyqtSlot(str, name="update")
     def update(self, data: str):
@@ -155,6 +162,12 @@ class Ui_MainWindow(QMainWindow):
         item.setFont(font)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.NoBrush)
+        if int(power) >= -65:
+            item.setForeground(QColor(0, 170, 0))
+        elif -65 > int(power) >= -85:
+            item.setForeground(QColor(255, 170, 0))
+        else:
+            item.setForeground(QColor(170, 0, 0))
         item.setBackground(brush)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         row = self.tableWidget.rowCount()

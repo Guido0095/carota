@@ -72,7 +72,7 @@ class NetTest(QRunnable):
 
         try:
             firebase_admin.initialize_app(cred, {
-                'databaseURL': 'https://stocazzo-cc471.firebaseio.com/'
+                'databaseURL': 'https://netest-90f02.firebaseio.com/'
             })
             child = 'ACCESS POINTS'
             ref = db.reference(child)
@@ -155,16 +155,8 @@ class NetTest(QRunnable):
                 self.update_signal.emit(json.dumps(table))
 
     def run(self):
-        class Proxone(QObject):
-            @pyqtSlot(name="escilcane")
-            def escilcane(self):
-                print("Sto uscendo il cane")
-                sys.exit(0)
 
-            def __init__(self, signal):
-                super().__init__()
-                signal.connect(self.escilcane)
-        Proxone(self.stop_signal)
+        # self.stop_signal.connect(self.stop_signal)
         try:
             self.testTshark(self.iface)
         except KeyboardInterrupt:
