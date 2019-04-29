@@ -137,7 +137,7 @@ class Ui_MainWindow(QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.update_signal.connect(self.update)
         self.kill_signal.connect(self.setKillFlag)
-        self.p = NetTest('wlp2s0', self.kill_signal, self.update_signal)
+        self.p = NetTest(sys.argv[1], self.kill_signal, self.update_signal)
         self.p.start()
 
     def closeEvent(self, QCloseEvent):
