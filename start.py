@@ -2,7 +2,6 @@
 import json
 import subprocess
 import sys
-import time
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QColor
@@ -144,7 +143,6 @@ class Ui_MainWindow(QMainWindow):
 
     def closeEvent(self, QCloseEvent):
         subprocess.run(["kill", "-9", self.pid])
-        time.sleep(6)
 
     @pyqtSlot(int, name="setKillFlag")
     def setKillFlag(self, pid: int):
