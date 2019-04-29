@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import json
+import subprocess
 import sys
+import time
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QColor
@@ -11,12 +13,12 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 
 
 class Ui_MainWindow(QMainWindow):
-    stop_signal = pyqtSignal()
     update_signal = pyqtSignal(str)
     kill_signal = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
+        self.pid = 0
         MainWindow = self
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(622, 447)
@@ -30,7 +32,7 @@ class Ui_MainWindow(QMainWindow):
         font.setBold(False)
         font.setWeight(50)
         MainWindow.setFont(font)
-        MainWindow.setWindowTitle("Name to define")
+        MainWindow.setWindowTitle("Hotspot List")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -134,16 +136,17 @@ class Ui_MainWindow(QMainWindow):
         self.actionStart.setObjectName("actionStart")
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.update_signal.connect(self.update)
-        self.p = NetTest('wlp2s0', self.stop_signal, self.update_signal)
+        self.kill_signal.connect(self.setKillFlag)
+        self.p = NetTest('wlp2s0', self.kill_signal, self.update_signal)
         self.p.start()
 
     def closeEvent(self, QCloseEvent):
-        print("hailamammasegnale")
-        self.stop_signal.emit()
+        subprocess.run(["kill", "-9", self.pid])
+        time.sleep(6)
 
-    @pyqtSlot(int, name="kill")
-    def kill(self, pid: int):
-        print("Killo robe " +pid)
+    @pyqtSlot(int, name="setKillFlag")
+    def setKillFlag(self, pid: int):
+        self.pid = pid
 
     @pyqtSlot(str, name="update")
     def update(self, data: str):

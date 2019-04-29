@@ -53,20 +53,21 @@ class Hotspot:
 
 
 class NetTest(QRunnable):
-    def __init__(self, iface, stop_signal, update_signal):
+    def __init__(self, iface, kill_signal, update_signal):
         QRunnable.__init__(self)
         self.iface = iface
         self.update_signal = update_signal
-        self.stop_signal = stop_signal
+        self.kill_signal = kill_signal
 
     def start(self):
         QThreadPool.globalInstance().start(self)
 
     def testTshark(self, iface):
 
-        cmd = 'tshark -l -I -Y "wlan.fc.type_subtype != 4" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i' + iface
+        cmd = 'tshark -l -I -Y "wlan.fc.type_subtype != 4" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i ' + iface
         args = shlex.split(cmd)
         tshark = subprocess.Popen(args, stdout=subprocess.PIPE)
+        self.kill_signal.emit(tshark.pid)
 
         cred = credentials.Certificate('stachiave.json')
 
@@ -74,15 +75,15 @@ class NetTest(QRunnable):
             firebase_admin.initialize_app(cred, {
                 'databaseURL': 'https://netest-90f02.firebaseio.com/'
             })
-            child = 'ACCESS POINTS'
+            child = 'AP'
             ref = db.reference(child)
         except:
             print('No connection with the Firebase Database')
             pass
 
         update = datetime.now() - timedelta(seconds=5)
+
         for line in io.TextIOWrapper(tshark.stdout, encoding="utf-8"):
-            # print('%s' % line.rstrip())
             capture = line.rstrip().split('\t')
             dim = len(capture)
             for dim in range(dim, 6):
@@ -136,8 +137,9 @@ class NetTest(QRunnable):
                         ref.update({
                             name:
                                 {
-                                    'NUMBER OF CLIENTS': str(len(address.clients)),
-                                    'SINGNAL POWER IN dB': address.power
+                                    'apname': name,
+                                    'number': str(len(address.clients)),
+                                    'signal': str(address.power)
                                 }
                         })
                     except:
@@ -150,13 +152,13 @@ class NetTest(QRunnable):
                                 db.reference(child + '/' + key).delete()
                 except:
                     pass
+
                 print("--------")
                 table = [{"Power": m.power, "SSID": m.ssid, "Connected": str(len(m.clients))} for m in mappone.values()]
                 self.update_signal.emit(json.dumps(table))
 
     def run(self):
 
-        # self.stop_signal.connect(self.stop_signal)
         try:
             self.testTshark(self.iface)
         except KeyboardInterrupt:
