@@ -73,7 +73,7 @@ class NetTest(QRunnable):
 
         try:
             app = firebase_admin.get_app()
-        except:
+        except ValueError as e:
             firebase_admin.initialize_app(cred, {
                 'databaseURL': 'https://netest-90f02.firebaseio.com/'
             })
