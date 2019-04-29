@@ -72,14 +72,13 @@ class NetTest(QRunnable):
         cred = credentials.Certificate('stachiave.json')
 
         try:
+            app = firebase_admin.get_app()
+        except:
             firebase_admin.initialize_app(cred, {
                 'databaseURL': 'https://netest-90f02.firebaseio.com/'
             })
             child = 'AP'
             ref = db.reference(child)
-        except:
-            print('No connection with the Firebase Database')
-            pass
 
         update = datetime.now() - timedelta(seconds=5)
 
