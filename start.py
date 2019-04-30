@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import subprocess
 import sys
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -145,7 +146,7 @@ class Ui_MainWindow(QMainWindow):
         self.p.start()
 
     def closeEvent(self, QCloseEvent):
-        self.p.stop()
+        subprocess.run(["kill", "-15", str(self.pid)])
 
     @pyqtSlot(int, name="setKillFlag")
     def setKillFlag(self, pid: int):
