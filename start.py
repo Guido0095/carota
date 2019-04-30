@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+import argparse
 import json
-import subprocess
 import sys
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtGui import QColor, QCursor
 
 from networktester import NetTest
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -17,8 +17,14 @@ class Ui_MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        # if sys.argv[2] == '-f':
-        #     self.showFullScreen()
+        parser = argparse.ArgumentParser(description='Network tester')
+        parser.add_argument('-i', type=str, help="Interface name")
+        parser.add_argument('-f', action='store_true', help="Full screen")
+        parser.set_defaults(f=False)
+        args = parser.parse_args()
+        if args.f:
+            QApplication.setOverrideCursor(Qt.BlankCursor)
+            self.showFullScreen()
         self.pid = 0
         MainWindow = self
         MainWindow.setObjectName("MainWindow")
@@ -135,11 +141,11 @@ class Ui_MainWindow(QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.update_signal.connect(self.update)
         self.kill_signal.connect(self.setKillFlag)
-        self.p = NetTest(sys.argv[1], self.kill_signal, self.update_signal)
+        self.p = NetTest(args.i, self.kill_signal, self.update_signal)
         self.p.start()
 
     def closeEvent(self, QCloseEvent):
-        subprocess.run(["kill", "-9", self.pid])
+        self.p.stop()
 
     @pyqtSlot(int, name="setKillFlag")
     def setKillFlag(self, pid: int):

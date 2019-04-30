@@ -9,3 +9,4 @@ python_version = "3.7"
 [packages]
 pyqt5 = "*"
 firebase-admin = "*"
+qt = "*"

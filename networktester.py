@@ -62,6 +62,9 @@ class NetTest(QRunnable):
     def start(self):
         QThreadPool.globalInstance().start(self)
 
+    def stop(self):
+        QThreadPool.globalInstance().stop(self)
+
     def testTshark(self, iface):
 
         cmd = 'tshark -l -I -Y "wlan.fc.type_subtype != 4" -e "wlan_radio.signal_dbm" -e "wlan.fc.type_subtype" -e "wlan.ra" -e "wlan.ta" -e "wlan.ssid" -e "wlan.bssid" -Tfields -i ' + iface
