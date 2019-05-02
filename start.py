@@ -168,6 +168,12 @@ class Ui_MainWindow(QMainWindow):
             self.populatetable(extract['Power'], extract['SSID'], extract['Connected'], extract['Data'])
 
     def populatetable(self, power: str, ssid: str, clients: str, data: str):
+        if int(power) >= -65:
+            color = QColor(0, 170, 0)
+        elif -65 > int(power) >= -85:
+            color = QColor(255, 170, 0)
+        else:
+            color = QColor(170, 0, 0)
         item = QtWidgets.QTableWidgetItem()
         item.setText(str(power))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -176,13 +182,7 @@ class Ui_MainWindow(QMainWindow):
         item.setFont(font)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.NoBrush)
-        if int(power) >= -65:
-            item.setForeground(QColor(0, 170, 0))
-        elif -65 > int(power) >= -85:
-            item.setForeground(QColor(255, 170, 0))
-        else:
-            item.setForeground(QColor(170, 0, 0))
-        item.setBackground(brush)
+        item.setForeground(color)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         row = self.tableWidget.rowCount()
         self.tableWidget.insertRow(row)
@@ -193,6 +193,7 @@ class Ui_MainWindow(QMainWindow):
         font = QtGui.QFont()
         font.setPointSize(18)
         item.setFont(font)
+        item.setForeground(color)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         self.tableWidget.setItem(row, 1, item)
         item = QtWidgets.QTableWidgetItem()
@@ -201,6 +202,7 @@ class Ui_MainWindow(QMainWindow):
         font = QtGui.QFont()
         font.setPointSize(18)
         item.setFont(font)
+        item.setForeground(color)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         self.tableWidget.setItem(row, 2, item)
         item = QtWidgets.QTableWidgetItem()
@@ -209,6 +211,7 @@ class Ui_MainWindow(QMainWindow):
         font = QtGui.QFont()
         font.setPointSize(18)
         item.setFont(font)
+        item.setForeground(color)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         self.tableWidget.setItem(row, 3, item)
         self.tableWidget.sortByColumn(0, 0)
