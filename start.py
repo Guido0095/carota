@@ -93,7 +93,7 @@ class Ui_MainWindow(QMainWindow):
         self.tableWidget.setGridStyle(QtCore.Qt.SolidLine)
         self.tableWidget.setWordWrap(False)
         self.tableWidget.setCornerButtonEnabled(False)
-        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setColumnCount(4)
         self.tableWidget.setObjectName("tableWidget")
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
@@ -124,6 +124,14 @@ class Ui_MainWindow(QMainWindow):
         font.setWeight(75)
         item.setFont(font)
         self.tableWidget.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        item.setText("Data (KB)")
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        font.setBold(True)
+        font.setWeight(75)
+        item.setFont(font)
+        self.tableWidget.setHorizontalHeaderItem(3, item)
         self.tableWidget.horizontalHeader().setVisible(True)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(193)
@@ -154,13 +162,12 @@ class Ui_MainWindow(QMainWindow):
 
     @pyqtSlot(str, name="update")
     def update(self, data: str):
-        print("Stampo robe ")
         estratto = json.loads(data)
         self.tableWidget.setRowCount(0)
         for extract in estratto:
-            self.populatetable(extract['Power'], extract['SSID'], extract['Connected'])
+            self.populatetable(extract['Power'], extract['SSID'], extract['Connected'], extract['Data'])
 
-    def populatetable(self, power: str, ssid: str, clients: str):
+    def populatetable(self, power: str, ssid: str, clients: str, data: str):
         item = QtWidgets.QTableWidgetItem()
         item.setText(str(power))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -196,6 +203,14 @@ class Ui_MainWindow(QMainWindow):
         item.setFont(font)
         item.setFlags(QtCore.Qt.ItemIsEnabled)
         self.tableWidget.setItem(row, 2, item)
+        item = QtWidgets.QTableWidgetItem()
+        item.setText(data)
+        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        font = QtGui.QFont()
+        font.setPointSize(18)
+        item.setFont(font)
+        item.setFlags(QtCore.Qt.ItemIsEnabled)
+        self.tableWidget.setItem(row, 3, item)
         self.tableWidget.sortByColumn(0, 0)
 
 

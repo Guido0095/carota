@@ -6,7 +6,7 @@ import shlex
 import sys
 import io
 import firebase_admin
-from PyQt5.QtCore import QRunnable, QThreadPool, pyqtSlot, QObject
+from PyQt5.QtCore import QRunnable, QThreadPool
 from firebase_admin import credentials, db
 
 mappone = {}
@@ -14,6 +14,9 @@ mappone = {}
 
 class Hotspot:
     def __init__(self, ssid, bssid, power):
+        self.packets = 0
+        self.data = 0
+        self.packetstime = datetime.now()
         self.ssid = ssid
         self.bssid = [bssid]
         self.clients = {}
@@ -27,6 +30,7 @@ class Hotspot:
         if int(mac[:2], 16) & 1 == 0:
             self.lastseen = now
             self.clients[mac] = now
+            self.packetsUpdate()
             if len(self.powerarray) > 20:
                 del self.powerarray[0]
             if power != '':
@@ -35,7 +39,8 @@ class Hotspot:
 
     def printStatus(self):
         if self.ssid != "x":
-            print(self.power, "  ", self.ssid, "  ", str(len(self.clients)), list(self.clients.keys()))
+            print(self.power, "  ", self.ssid, "  ", str(len(self.clients)), "  ", list(self.clients.keys()), "  ",
+                  str(self.data))
 
     def addbssid(self, bssid, power):
         if bssid not in self.bssid:
@@ -50,6 +55,12 @@ class Hotspot:
             return mac2, self.ssid
         elif mac2 in self.bssid:
             return mac1, self.ssid
+
+    def packetsUpdate(self):
+        if self.packets == 0:
+            self.packetstime = datetime.now()
+        self.packets += 1
+        self.data = self.packets * 2312 / 1000
 
 
 class NetTest(QRunnable):
@@ -116,9 +127,13 @@ class NetTest(QRunnable):
             copymappone = []
 
             for name, address in mappone.items():
+                address: Hotspot
                 time = (datetime.now() - timedelta(seconds=60))
+                time2 = (datetime.now() - timedelta(seconds=5))
                 if address.lastseen < time:
                     copymappone.append(name)
+                if address.packetstime < time2:
+                    address.packets = 0
             for netname in copymappone:
                 del mappone[netname]
             for name, address in mappone.items():
@@ -138,6 +153,7 @@ class NetTest(QRunnable):
                             name:
                                 {
                                     'apname': name,
+                                    'data': str(address.data),
                                     'number': str(len(address.clients)),
                                     'signal': str(address.power)
                                 }
@@ -154,7 +170,8 @@ class NetTest(QRunnable):
                     pass
 
                 print("--------")
-                table = [{"Power": m.power, "SSID": m.ssid, "Connected": str(len(m.clients))} for m in mappone.values()]
+                table = [{"Power": m.power, "SSID": m.ssid, "Connected": str(len(m.clients)),
+                          "Data": str(m.data)} for m in mappone.values()]
                 self.update_signal.emit(json.dumps(table))
 
     def run(self):
