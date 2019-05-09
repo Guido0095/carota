@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtGui import QColor, QCursor
+from PyQt5.QtGui import QColor
 
 from networktester import NetTest
 from PyQt5 import QtCore, QtGui, QtWidgets
